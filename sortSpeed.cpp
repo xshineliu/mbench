@@ -1,3 +1,5 @@
+/* g++ -O3 -o bgo sortSpeed.cpp -mrdrnd */
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -28,7 +30,7 @@ static inline long long unsigned time_ns(struct timespec* const ts) {
 }
 
 
-int cmp(const void *a, const void *b) {
+inline int cmp(const void *a, const void *b) {
         return (*(unsigned int*)a > *(unsigned int*)b) ? 1 : 0;
 }
 
@@ -94,3 +96,4 @@ int main(int argc, char* argv[])
         printf("%p %016llX %ld %ld\n", pos - 1, *(pos - 1), delta, steps);
 
 }
+
