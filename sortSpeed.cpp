@@ -1,9 +1,7 @@
-
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 #include <unistd.h>
 #include <sys/mman.h>
 #include <stdint.h>
@@ -18,12 +16,29 @@ void *ptr = NULL;
 unsigned int *p = NULL;
 
 
+long long unsigned start_ns;
+struct timespec ts;
+
+static inline long long unsigned time_ns(struct timespec* const ts) {
+        if (clock_gettime(CLOCK_REALTIME, ts)) {
+                exit(1);
+        }
+        return ((long long unsigned) ts->tv_sec) * 1000000000LLU
+                        + (long long unsigned) ts->tv_nsec;
+}
+
+
+int cmp(const void *a, const void *b) {
+        return (*(unsigned int*)a > *(unsigned int*)b) ? 1 : 0;
+}
+
 int main(int argc, char* argv[])
 {
 
         unsigned long long *pos;
         unsigned long long i;
         unsigned long long start_ns;
+        unsigned long long delta;
         struct timespec ts;
 
         int ret = 0;
@@ -60,12 +75,22 @@ int main(int argc, char* argv[])
         unsigned long long steps = n_bytes / sizeof(unsigned long long);
         pos = (unsigned long long *)ptr;
 
+
+        start_ns = time_ns(&ts);
+
         for(i = 0; i < steps; i++) {
                 __builtin_ia32_rdrand64_step(pos);
                 pos++;
                 //printf("%llX\n", *pos);
         }
 
-        printf("%p %llX\n", pos - 1, *(pos - 1));
+        delta = time_ns(&ts) - start_ns;
+        printf("%p %016llX %ld %ld\n", pos - 1, *(pos - 1), delta, steps);
+
+        start_ns = time_ns(&ts);
+        std::qsort(ptr, N, sizeof(unsigned int), cmp);
+        delta = time_ns(&ts) - start_ns;
+        printf("%p %016llX\n", ptr, *(unsigned long long *)ptr);
+        printf("%p %016llX %ld %ld\n", pos - 1, *(pos - 1), delta, steps);
 
 }
