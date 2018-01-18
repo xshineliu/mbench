@@ -15,6 +15,7 @@
 
 
 void *ptr = NULL;
+void *ptrd = NULL;
 unsigned int *p = NULL;
 
 
@@ -31,8 +32,37 @@ static inline long long unsigned time_ns(struct timespec* const ts) {
 
 
 inline int cmp(const void *a, const void *b) {
-        return (*(unsigned int*)a > *(unsigned int*)b) ? 1 : 0;
+	return (*(unsigned int*)a > *(unsigned int*)b) ? 1 : 0;
 }
+
+
+inline void allocMem(void **pptr, unsigned long long n_bytes, int hugepage_forced) {
+	
+        int hugepage_allocate = 1;
+	int ret;
+        if(hugepage_forced) {
+                *pptr = mmap(NULL, ((n_bytes < DEF_HUGE_PAGE_SIZE) ? DEF_HUGE_PAGE_SIZE : n_bytes),
+                         PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0) ;
+                if(*pptr != MAP_FAILED) {
+                        printf("HugePage allocated at pointer %p with size %llX\n", *pptr, n_bytes);
+                        hugepage_allocate = 1;
+                } else {
+                        printf("HugePage allocated Failed: %d\n", *pptr);
+                }
+        }
+
+
+        if(!hugepage_allocate) {
+                ret = posix_memalign(pptr, sysconf(_SC_PAGESIZE), n_bytes);
+                if (ret) {
+                        fprintf(stderr,"None zero ret code %d\n", ret);
+                        exit(EXIT_FAILURE);
+                }
+                printf("Normal page allocated at pointer %p with size %llX,\n\t" \
+                        " * Please manually disable the Transparent Huge Page if needed.\n", *pptr, n_bytes);
+	}
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -43,57 +73,33 @@ int main(int argc, char* argv[])
         unsigned long long delta;
         struct timespec ts;
 
-        int ret = 0;
+	int ret = 0;
 
-        int hugepage_forced = 1;
-        int hugepage_allocate = 0;
-        unsigned long long n_bytes = TYPE_LEN * N;
-
-
-        if(hugepage_forced) {
-                ptr = mmap(NULL, ((n_bytes < DEF_HUGE_PAGE_SIZE) ? DEF_HUGE_PAGE_SIZE : n_bytes),
-                         PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0) ;
-                if(ptr != MAP_FAILED) {
-                        printf("HugePage allocated at pointer %p with size %llX\n", ptr, n_bytes);
-                        hugepage_allocate = 1;
-                } else {
-                        printf("HugePage allocated Failed: %d\n", ptr);
-                }
-        }
+	int hugepage_forced = 1;
+	unsigned long long n_bytes = TYPE_LEN * N;
 
 
-        if(!hugepage_allocate) {
-                ret = posix_memalign((void **)&ptr, sysconf(_SC_PAGESIZE), n_bytes);
-                if (ret) {
-                        fprintf(stderr,"None zero ret code %d\n", ret);
-                        exit(EXIT_FAILURE);
-                }
-                printf("Normal page allocated at pointer %p with size %llX,\n\t" \
-                        " * Please manually disable the Transparent Huge Page if needed.\n", ptr, n_bytes);
-        }
+	allocMem(&ptr, n_bytes, hugepage_forced);
+
+	unsigned long long steps = n_bytes / sizeof(unsigned long long);
+	pos = (unsigned long long *)ptr;
 
 
-
-        unsigned long long steps = n_bytes / sizeof(unsigned long long);
-        pos = (unsigned long long *)ptr;
-
-
-        start_ns = time_ns(&ts);
-
-        for(i = 0; i < steps; i++) {
-                __builtin_ia32_rdrand64_step(pos);
-                pos++;
-                //printf("%llX\n", *pos);
-        }
-
+	start_ns = time_ns(&ts);
+	
+	for(i = 0; i < steps; i++) {
+        	__builtin_ia32_rdrand64_step(pos);
+		pos++;
+		//printf("%llX\n", *pos);
+	}
+	
         delta = time_ns(&ts) - start_ns;
-        printf("%p %016llX %ld %ld\n", pos - 1, *(pos - 1), delta, steps);
+	printf("%p %016llX %ld %ld\n", pos - 1, *(pos - 1), delta, steps);
 
-        start_ns = time_ns(&ts);
-        std::qsort(ptr, N, sizeof(unsigned int), cmp);
+	start_ns = time_ns(&ts);
+	std::qsort(ptr, N, sizeof(unsigned int), cmp);
         delta = time_ns(&ts) - start_ns;
-        printf("%p %016llX\n", ptr, *(unsigned long long *)ptr);
-        printf("%p %016llX %ld %ld\n", pos - 1, *(pos - 1), delta, steps);
+	printf("%p %016llX\n", ptr, *(unsigned long long *)ptr);
+	printf("%p %016llX %ld %ld\n", pos - 1, *(pos - 1), delta, steps);
 
 }
-
