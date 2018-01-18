@@ -38,7 +38,7 @@ inline int cmp(const void *a, const void *b) {
 
 inline void allocMem(void **pptr, unsigned long long n_bytes, int hugepage_forced) {
 	
-        int hugepage_allocate = 1;
+        int hugepage_allocate = 0;
 	int ret;
         if(hugepage_forced) {
                 *pptr = mmap(NULL, ((n_bytes < DEF_HUGE_PAGE_SIZE) ? DEF_HUGE_PAGE_SIZE : n_bytes),
