@@ -4,15 +4,15 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <cstdint>
 #include <unistd.h>
 #include <sys/mman.h>
-#include <stdint.h>
-
+//#include <assert.h>
+//#include <x86intrin.h>
 
 #define N ((1000000UL))
 #define TYPE_LEN (sizeof(int))
 #define DEF_HUGE_PAGE_SIZE ((0x200000))
-
 
 void *ptr = NULL;
 void *ptrd = NULL;
@@ -21,6 +21,7 @@ unsigned int *p = NULL;
 
 long long unsigned start_ns;
 struct timespec ts;
+
 
 static inline long long unsigned time_ns(struct timespec* const ts) {
         if (clock_gettime(CLOCK_REALTIME, ts)) {
@@ -63,6 +64,30 @@ inline void allocMem(void **pptr, unsigned long long n_bytes, int hugepage_force
 	}
 }
 
+void measure() {
+	unsigned long long delta = 0;
+	unsigned long long mid = (N + 1) / 2;
+	unsigned int *arrA = (unsigned int *) ptr;
+	unsigned int *arrB = (unsigned int *) ptrd;
+	unsigned int midVal = arrA[mid];
+
+	unsigned long long  i = 0;
+	unsigned long long  j = 0;
+	unsigned long long  k = (N - 1);
+
+	start_ns = time_ns(&ts);
+	for (i = 0 ; i < N; i++) {
+		if (arrA[i] < mid) {
+			arrB[j++] = arrA[i];
+		} else {
+			arrB[k--] = arrA[i];
+		}
+	}
+        delta = time_ns(&ts) - start_ns;
+
+	printf("*** COPY %p %016llX, %ld %ld %ld, %ld\n", ptrd, *(unsigned long long *)ptrd, i, j, k, delta);
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -80,6 +105,7 @@ int main(int argc, char* argv[])
 
 
 	allocMem(&ptr, n_bytes, hugepage_forced);
+	allocMem(&ptrd, n_bytes, hugepage_forced);
 
 	unsigned long long steps = n_bytes / sizeof(unsigned long long);
 	pos = (unsigned long long *)ptr;
@@ -96,8 +122,20 @@ int main(int argc, char* argv[])
         delta = time_ns(&ts) - start_ns;
 	printf("%p %016llX %ld %ld\n", pos - 1, *(pos - 1), delta, steps);
 
+
+	measure();
+
+
 	start_ns = time_ns(&ts);
-	std::qsort(ptr, N, sizeof(unsigned int), cmp);
+	std::qsort(ptr, N, sizeof(unsigned int), [](const void* a, const void* b)
+	    {
+		uint32_t a1 = *static_cast<const uint32_t*>(a);
+		uint32_t a2 = *static_cast<const uint32_t*>(b);
+
+		if(a1 < a2) return -1;
+		if(a1 > a2) return 1;
+		return 0;
+	    });
         delta = time_ns(&ts) - start_ns;
 	printf("%p %016llX\n", ptr, *(unsigned long long *)ptr);
 	printf("%p %016llX %ld %ld\n", pos - 1, *(pos - 1), delta, steps);
