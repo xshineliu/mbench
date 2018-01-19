@@ -1,26 +1,91 @@
+
 /* g++ -O3 -o bgo sortSpeed.cpp -mrdrnd */
 
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
-#include <cstdint>
+//#include <cstdint>
 #include <unistd.h>
 #include <sys/mman.h>
-//#include <assert.h>
-//#include <x86intrin.h>
+#include <assert.h>
+#include <x86intrin.h>
 
 #define N ((1000000UL))
 #define TYPE_LEN (sizeof(int))
 #define DEF_HUGE_PAGE_SIZE ((0x200000))
 
+
 void *ptr = NULL;
 void *ptrd = NULL;
 unsigned int *p = NULL;
 
+#ifdef DEBUG
+static int depth = 0;
+static int depthMax = 0;
+#endif
+
 
 long long unsigned start_ns;
 struct timespec ts;
+
+
+
+void scalar_partition_epi32(unsigned int* array, const unsigned int pivot, int* left, int* right) {
+
+    while (*left <= *right) {
+
+        while (array[*left] < pivot) {
+            *left += 1;
+        }
+
+        while (array[*right] > pivot) {
+            *right -= 1;
+        }
+
+        if (*left <= *right) {
+            const unsigned int t = array[*left];
+            array[*left]      = array[*right];
+            array[*right]     = t;
+
+            *left  += 1;
+            *right -= 1;
+        }
+    }
+}
+
+
+
+void qs_recsv(unsigned int* array, int left, int right) {
+
+    int i = left;
+    int j = right;
+
+    const unsigned int pivot = array[(i + j)/2];
+
+    scalar_partition_epi32(array, pivot, &i, &j);
+
+    if (left < j) {
+#ifdef DEBUG
+        depth++;
+	depthMax = (depth > depthMax) ? depth : depthMax;
+#endif
+        qs_recsv(array, left, j);
+    }
+
+    if (i < right) {
+#ifdef DEBUG
+        depth++;
+	depthMax = (depth > depthMax) ? depth : depthMax;
+#endif
+        qs_recsv(array, i, right);
+    }
+
+#ifdef DEBUG
+    depth--;
+#endif
+}
+
 
 
 static inline long long unsigned time_ns(struct timespec* const ts) {
@@ -127,20 +192,22 @@ int main(int argc, char* argv[])
 
 
 	start_ns = time_ns(&ts);
-	std::qsort(ptr, N, sizeof(unsigned int), cmp);
-	/*
-	std::qsort(ptr, N, sizeof(unsigned int), [](const void* a, const void* b)
-	    {
-		uint32_t a1 = *static_cast<const uint32_t*>(a);
-		uint32_t a2 = *static_cast<const uint32_t*>(b);
-
-		if(a1 < a2) return -1;
-		if(a1 > a2) return 1;
-		return 0;
-	    });
-	*/
+	//std::qsort(ptr, N, sizeof(unsigned int), cmp);
+	qs_recsv((unsigned int *)ptr, 0, N - 1);
         delta = time_ns(&ts) - start_ns;
 	printf("%p %016llX\n", ptr, *(unsigned long long *)ptr);
 	printf("%p %016llX %ld %ld\n", pos - 1, *(pos - 1), delta, steps);
 
+	start_ns = time_ns(&ts);
+	std::qsort(ptrd, N, sizeof(unsigned int), cmp);
+        delta = time_ns(&ts) - start_ns;
+	printf("%p %016llX\n", ptrd, *(unsigned long long *)ptrd);
+	pos = (unsigned long long *)ptrd + N;
+	printf("%p %016llX %ld %ld\n", pos - 1, *(pos - 1), delta, steps);
+
+
+#ifdef DEBUG
+	printf("Max Stack Depth %d\n", depthMax);
+#endif
 }
+
