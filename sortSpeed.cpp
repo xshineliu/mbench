@@ -127,6 +127,8 @@ int main(int argc, char* argv[])
 
 
 	start_ns = time_ns(&ts);
+	std::qsort(ptr, N, sizeof(unsigned int), cmp);
+	/*
 	std::qsort(ptr, N, sizeof(unsigned int), [](const void* a, const void* b)
 	    {
 		uint32_t a1 = *static_cast<const uint32_t*>(a);
@@ -136,6 +138,7 @@ int main(int argc, char* argv[])
 		if(a1 > a2) return 1;
 		return 0;
 	    });
+	*/
         delta = time_ns(&ts) - start_ns;
 	printf("%p %016llX\n", ptr, *(unsigned long long *)ptr);
 	printf("%p %016llX %ld %ld\n", pos - 1, *(pos - 1), delta, steps);
