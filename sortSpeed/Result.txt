@@ -1,0 +1,31 @@
+
+C1 - Turbo ON 2.4GHz, DDR4 2133, 4CH, E5-2650 v3
+
+[root@hw03 ~]# time ./fff -n 1000 | grep Case
+Case 1: 164255 500
+Case 2: 67320 500
+Case 3: 33265 500
+Case 4: 19127 500 4020576 0
+
+real	0m0.002s
+user	0m0.003s
+sys	0m0.001s
+[root@hw03 ~]# time ./fff -n 10000 | grep Case
+Case 1: 1163460 5000
+Case 2: 787016 5000
+Case 3: 252077 5000
+Case 4: 171520 5000 4020576 0
+
+real	0m0.007s
+user	0m0.008s
+sys	0m0.001s
+[root@hw03 ~]# time ./fff -n 100000 | grep Case
+Case 1: 13636142 50000
+Case 2: 9369988 50000
+Case 3: 2610162 50000
+Case 4: 2792231 50000 4020576 0
+
+real	0m0.057s
+user	0m0.058s
+sys	0m0.001s
+
