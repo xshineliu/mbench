@@ -299,7 +299,7 @@ int main(int argc, char* argv[]) {
 
 	unsigned long long steps = n_bytes / sizeof(unsigned long long);
 
-	if (test_case == 0) {
+	if (test_case < 0 || test_case == 0) {
 		pos = (unsigned long long *) ptr;
 		start_ns = time_ns(&ts);
 		for (i = 0; i < steps; i++) {
