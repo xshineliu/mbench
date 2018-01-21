@@ -1,4 +1,3 @@
-
 /* g++ -O3 -o bgo sortSpeed.cpp -mrdrnd */
 
 #include <cstdio>
@@ -11,6 +10,7 @@
 #include <assert.h>
 #include <x86intrin.h>
 
+//#define N ((1000000UL))
 #define N ((1000000UL))
 #define TYPE_LEN (sizeof(int))
 #define DEF_HUGE_PAGE_SIZE ((0x200000))
@@ -23,62 +23,80 @@ unsigned int *p = NULL;
 #ifdef DEBUG
 static int depth = 0;
 static int depthMax = 0;
+static int numSplit = 0;
 #endif
 
 
 long long unsigned start_ns;
 struct timespec ts;
 
+/*
+ * newRBound --->  <--- newLBound
+ */
 
+void scalar_partition_epi32(unsigned int ** newRBound, unsigned int** newLBound, const unsigned int pivot) {
 
-void scalar_partition_epi32(unsigned int* array, const unsigned int pivot, int* left, int* right) {
+#ifdef DEBUG
+    numSplit++;
+#endif
 
-    while (*left <= *right) {
+    int tmp = 0;
 
-        while (array[*left] < pivot) {
-            *left += 1;
+    while (*newRBound <= *newLBound) {
+
+        //__builtin_prefetch(*newLBound, 0, 3);
+        while (**newRBound < pivot) {
+            (*newRBound)++;
         }
 
-        while (array[*right] > pivot) {
-            *right -= 1;
+        while (**newLBound > pivot) {
+            (*newLBound)--;
         }
 
-        if (*left <= *right) {
-            const unsigned int t = array[*left];
-            array[*left]      = array[*right];
-            array[*right]     = t;
+        if (*newRBound <= *newLBound) {
+            const unsigned int t = **newRBound;
+            **newRBound     = **newLBound;
+            **newLBound     = t;
 
-            *left  += 1;
-            *right -= 1;
+            (*newRBound)++;
+            (*newLBound)--;
         }
     }
 }
 
 
+/* 
+ *  Left ... newRBound || newLBound ... Right
+ *  lBound ... newRBound || newLBound ... rBound
+ */
 
-void qs_recsv(unsigned int* array, int left, int right) {
+void qs_recsv(unsigned int* array, unsigned long long nElem) {
 
-    int i = left;
-    int j = right;
+    unsigned int *lBound = array;
+    unsigned int *rBound = array + nElem - 1;
+    unsigned int *newRBound = lBound;
+    unsigned int *newLBound = rBound;
 
-    const unsigned int pivot = array[(i + j)/2];
+    //const unsigned int pivot = array[nElem / 2];
+    const unsigned int pivot = array[0];
 
-    scalar_partition_epi32(array, pivot, &i, &j);
+    scalar_partition_epi32(&newRBound, &newLBound, pivot);
 
-    if (left < j) {
+    if (lBound < newLBound) {
 #ifdef DEBUG
         depth++;
 	depthMax = (depth > depthMax) ? depth : depthMax;
 #endif
-        qs_recsv(array, left, j);
+        qs_recsv(lBound, newLBound - lBound);
     }
 
-    if (i < right) {
+
+    if (newRBound < rBound) {
 #ifdef DEBUG
         depth++;
 	depthMax = (depth > depthMax) ? depth : depthMax;
 #endif
-        qs_recsv(array, i, right);
+        qs_recsv(newRBound, rBound - newRBound);
     }
 
 #ifdef DEBUG
@@ -188,26 +206,27 @@ int main(int argc, char* argv[])
 	printf("%p %016llX %ld %ld\n", pos - 1, *(pos - 1), delta, steps);
 
 
-	measure();
-
-
 	start_ns = time_ns(&ts);
 	//std::qsort(ptr, N, sizeof(unsigned int), cmp);
-	qs_recsv((unsigned int *)ptr, 0, N - 1);
+	qs_recsv((unsigned int *)ptr,  N);
         delta = time_ns(&ts) - start_ns;
 	printf("%p %016llX\n", ptr, *(unsigned long long *)ptr);
 	printf("%p %016llX %ld %ld\n", pos - 1, *(pos - 1), delta, steps);
+
+
+/*
+	measure();
+
 
 	start_ns = time_ns(&ts);
 	std::qsort(ptrd, N, sizeof(unsigned int), cmp);
         delta = time_ns(&ts) - start_ns;
 	printf("%p %016llX\n", ptrd, *(unsigned long long *)ptrd);
-	pos = (unsigned long long *)ptrd + N;
+	pos = (unsigned long long *)ptrd + steps;
 	printf("%p %016llX %ld %ld\n", pos - 1, *(pos - 1), delta, steps);
-
+*/
 
 #ifdef DEBUG
-	printf("Max Stack Depth %d\n", depthMax);
+	printf("Max Stack Depth %d, number of splits %d\n", depthMax, numSplit);
 #endif
 }
-
