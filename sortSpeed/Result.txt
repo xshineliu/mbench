@@ -113,3 +113,61 @@ Case 4: 30399106 500000 4020576 0
 
        0.100257213 seconds time elapsed
        
+
+
+[root@purley ~]# perf stat -B -e cycles,instructions,branches,cpu/mem-loads,ldlat=0/ppu,mem-stores,LLC-loads,LLC-stores,LLC-loads-misses,LLC-stores-misses,branch-misses,branch-load-misses,L1-dcache-loads-misses ./fff -c 2
+Normal page allocated at pointer 0x7fa781f3f000 with size 3D0900,
+	 * Please manually disable the Transparent Huge Page if needed.
+Normal page allocated at pointer 0x7fa781b0a000 with size 432380,
+	 * Please manually disable the Transparent Huge Page if needed.
+0x7fa78230f8f8 0A1C0723C82B093C 88651249 500000
+0x7fa781f3f000 00001EA90000081C 0x7fa781f3f008 0000359A0000352F
+0x7fa78230f8f0 FFFFB0C1FFFFADED 0x7fa78230f8f8 FFFFDB98FFFFB401
+Case 2: 129094205 500000
+
+ Performance counter stats for './fff -c 2':
+
+         471045454      cycles                                                        (33.51%)
+         234753687      instructions              #    0.50  insn per cycle           (42.09%)
+          47350015      branches                                                      (42.32%)
+            498549      cpu/mem-loads,ldlat=0/ppu                                     (42.32%)
+          12298897      mem-stores                                                    (42.32%)
+             10299      LLC-loads                                                     (42.06%)
+              2978      LLC-stores                                                    (32.98%)
+              1394      LLC-loads-misses          #   13.54% of all LL-cache hits     (17.00%)
+              1866      LLC-stores-misses                                             (16.94%)
+          10061895      branch-misses             #   21.25% of all branches          (25.29%)
+          10174523      branch-load-misses                                            (33.56%)
+            965276      L1-dcache-loads-misses                                        (33.41%)
+
+       0.219036383 seconds time elapsed
+
+
+[root@hw03 ~]# perf stat -B -e cycles,instructions,branches,cpu/mem-loads,ldlat=0/ppu,mem-stores,LLC-loads,LLC-stores,LLC-loads-misses,LLC-stores-misses,branch-misses,branch-load-misses,L1-dcache-loads-misses ./fff -c 2
+Normal page allocated at pointer 0x7f0150a0e000 with size 3D0900,
+	 * Please manually disable the Transparent Huge Page if needed.
+Normal page allocated at pointer 0x7f01505d9000 with size 432380,
+	 * Please manually disable the Transparent Huge Page if needed.
+0x7f0150dde8f8 B9249AD7E852FF36 69555004 500000
+0x7f0150a0e000 00004D0000003960 0x7f0150a0e008 000065630000531C
+0x7f0150dde8f0 FFFFDB88FFFFC730 0x7f0150dde8f8 FFFFFB61FFFFF483
+Case 2: 118882789 500000
+
+ Performance counter stats for './fff -c 2':
+
+         411437176      cycles                                                        (32.33%)
+         227936210      instructions              #    0.55  insns per cycle          (40.79%)
+          46353662      branches                                                      (41.25%)
+            475773      cpu/mem-loads,ldlat=0/ppu                                     (42.91%)
+          12508218      mem-stores                                                    (43.21%)
+             15042      LLC-loads                                                     (43.03%)
+             65015      LLC-stores                                                    (34.25%)
+               722      LLC-loads-misses          #    4.80% of all LL-cache hits     (17.04%)
+              2743      LLC-stores-misses                                             (16.92%)
+           9574787      branch-misses             #   20.66% of all branches          (24.95%)
+           9813397      branch-load-misses                                            (32.88%)
+            928559      L1-dcache-loads-misses                                        (32.35%)
+
+       0.189654719 seconds time elapsed
+       
+       
