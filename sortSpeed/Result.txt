@@ -1,4 +1,13 @@
 
+
+Case 0: Dummy Test
+Case 1: glibc 2.17 & libstdc++ 4.8.5 std::qsort
+Case 2: Self implemented but not optimized
+Case 3: avx2 version, https://academic.oup.com/comjnl/article-abstract/59/1/83/2568602?redirectedFrom=fulltext
+Case 4: IPP Radix sort, https://software.intel.com/en-us/node/722934
+
+================
+
 C6 - Turbo OFF 2.2GHz, DDR4 2400 * 4CH 2R Hynix HMA82GR7AFR8N-UH, Silver 4114
 
 [root@purley ~]# ./fff -n 1000 | grep Case
