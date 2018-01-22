@@ -1,39 +1,59 @@
 
-C1 - Turbo ON 2.4GHz, DDR4 2133, 4CH, E5-2650 v3
+C6 - Turbo OFF 2.2GHz, DDR4 2400 * 4CH 2R Hynix HMA82GR7AFR8N-UH, Silver 4114
 
-[root@hw03 ~]# time ./fff -n 1000 | grep Case
-Case 1: 164255 500
-Case 2: 67320 500
-Case 3: 33265 500
-Case 4: 19127 500 4020576 0
+[root@purley ~]# ./fff -n 1000 | grep Case
+Case 0: 161 500
+Case 1: 170623 500
+Case 2: 79772 500
+Case 3: 33599 500
+Case 4: 20421 500 4020576 0
+[root@purley ~]# ./fff -n 10000 | grep Case
+Case 0: 163 5000
+Case 1: 1385668 5000
+Case 2: 941568 5000
+Case 3: 303691 5000
+Case 4: 107081 5000 4020576 0
+[root@purley ~]# ./fff -n 100000 | grep Case
+Case 0: 165 50000
+Case 1: 15580414 50000
+Case 2: 11008172 50000
+Case 3: 2868171 50000
+Case 4: 1238388 50000 4020576 0
+[root@purley ~]# ./fff -n 1000000 | grep Case
+Case 0: 160 500000
+Case 1: 184127942 500000
+Case 2: 127835709 500000
+Case 3: 31412396 500000
+Case 4: 13724450 500000 4020576 0
 
-real	0m0.002s
-user	0m0.003s
-sys	0m0.001s
-[root@hw03 ~]# time ./fff -n 10000 | grep Case
-Case 1: 1163460 5000
-Case 2: 787016 5000
-Case 3: 252077 5000
-Case 4: 171520 5000 4020576 0
 
-real	0m0.007s
-user	0m0.008s
-sys	0m0.001s
-[root@hw03 ~]# time ./fff -n 100000 | grep Case
-Case 1: 13636142 50000
-Case 2: 9369988 50000
-Case 3: 2610162 50000
-Case 4: 2792231 50000 4020576 0
 
-real	0m0.057s
-user	0m0.058s
-sys	0m0.001s
-[root@hw03 ~]# time ./fff -n 1000000 | grep Case
-Case 1: 160845447 500000
-Case 2: 107869006 500000
-Case 3: 29150773 500000
-Case 4: 25711432 500000 4020576 0
 
-real	0m0.531s
-user	0m0.528s
-sys	0m0.006s
+C1 - Turbo OFF 2.2GHz, DDR4 2133 * 4CH 2R Hynix HMA82GR7AFR8N-UH, E5-2650 v3
+[root@hw03 ~]# ./fff -n 1000 | grep Case
+Case 0: 181 500
+Case 1: 191813 500
+Case 2: 75477 500
+Case 3: 33106 500
+Case 4: 19351 500 4020576 0
+[root@hw03 ~]# ./fff -n 10000 | grep Case
+Case 0: 179 5000
+Case 1: 1257422 5000
+Case 2: 847069 5000
+Case 3: 270522 5000
+Case 4: 188559 5000 4020576 0
+[root@hw03 ~]# ./fff -n 100000 | grep Case
+Case 0: 167 50000
+Case 1: 14863983 50000
+Case 2: 10098306 50000
+Case 3: 2902795 50000
+Case 4: 3000843 50000 4020576 0
+[root@hw03 ~]# ./fff -n 1000000 | grep Case
+Case 0: 168 500000
+Case 1: 175102656 500000
+Case 2: 117036362 500000
+Case 3: 32463630 500000
+Case 4: 27738029 500000 4020576 0
+
+
+
