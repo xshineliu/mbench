@@ -57,3 +57,59 @@ Case 4: 27738029 500000 4020576 0
 
 
 
+
+[root@purley ~]# perf stat -B -e cycles,instructions,branches,cpu/mem-loads,ldlat=0/ppu,mem-stores,LLC-loads,LLC-stores,cache-misses,branch-misses,branch-load-misses,L1-dcache-loads-misses ./fff -c 4
+Normal page allocated at pointer 0x7fab8d446000 with size 3D0900,
+	 * Please manually disable the Transparent Huge Page if needed.
+Normal page allocated at pointer 0x7fab8d011000 with size 432380,
+	 * Please manually disable the Transparent Huge Page if needed.
+0x7fab8d8168f8 B040102EB4E66918 88658672 500000
+0x7fab8d446000 0000129F00000D69 0x7fab8d446008 0000309D000018B9
+0x7fab8d8168f0 FFFFEF47FFFFEB0D 0x7fab8d8168f8 FFFFFFB2FFFFF0AE
+Case 4: 15296323 500000 4020576 0
+
+ Performance counter stats for './fff -c 4':
+
+         216816279      cycles                                                        (36.95%)
+          43394679      instructions              #    0.20  insn per cycle           (46.49%)
+           2402099      branches                                                      (47.02%)
+            186305      cpu/mem-loads,ldlat=0/ppu                                     (47.54%)
+          13766070      mem-stores                                                    (48.03%)
+            111790      LLC-loads                                                     (47.60%)
+            223560      LLC-stores                                                    (37.10%)
+             45622      cache-misses                                                  (36.12%)
+              5909      branch-misses             #    0.25% of all branches          (35.17%)
+              1071      branch-load-misses                                            (34.46%)
+           2745489      L1-dcache-loads-misses                                        (36.39%)
+
+       0.105341601 seconds time elapsed
+
+
+
+
+[root@hw03 ~]# perf stat -B -e cycles,instructions,branches,cpu/mem-loads,ldlat=0/ppu,mem-stores,LLC-loads,LLC-stores,cache-misses,branch-misses,branch-load-misses,L1-dcache-loads-misses ./fff -c 4
+Normal page allocated at pointer 0x7f63bb8e0000 with size 3D0900,
+	 * Please manually disable the Transparent Huge Page if needed.
+Normal page allocated at pointer 0x7f63bb4ab000 with size 432380,
+	 * Please manually disable the Transparent Huge Page if needed.
+0x7f63bbcb08f8 F475499E4034D120 68641484 500000
+0x7f63bb8e0000 00001C5500001655 0x7f63bb8e0008 000039C30000278B
+0x7f63bbcb08f0 FFFFD23BFFFFC22D 0x7f63bbcb08f8 FFFFFB6BFFFFFA12
+Case 4: 30399106 500000 4020576 0
+
+ Performance counter stats for './fff -c 4':
+
+         217188647      cycles                                                        (36.85%)
+          40148521      instructions              #    0.18  insns per cycle          (45.87%)
+           2721994      branches                                                      (45.86%)
+            132462      cpu/mem-loads,ldlat=0/ppu                                     (45.86%)
+          12398923      mem-stores                                                    (45.86%)
+             23065      LLC-loads                                                     (45.27%)
+            419234      LLC-stores                                                    (37.92%)
+             13314      cache-misses                                                  (37.53%)
+              1936      branch-misses             #    0.07% of all branches          (37.15%)
+              1583      branch-load-misses                                            (36.77%)
+           3397131      L1-dcache-loads-misses                                        (36.40%)
+
+       0.100257213 seconds time elapsed
+       
