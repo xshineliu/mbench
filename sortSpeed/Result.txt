@@ -181,7 +181,7 @@ Case 2: 118882789 500000
        
        
 
-==============  Test on a Platium 8160 CPU
+==============  Test on a Skylake Platium 8160 CPU, 6* DDR4 2666, Turbo ON, C6 ON
 
 Normal page allocated at pointer 0x7f4f5695b000 with size 3D0900,
    * Please manually disable the Transparent Huge Page if needed.
