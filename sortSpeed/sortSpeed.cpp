@@ -1,4 +1,4 @@
-/* icpc -O3 -static -o fff ./sortTesting.cpp ./qsort_avx2_int32.o /opt/intel/compilers_and_libraries_2018.1.163/linux/ipp/lib/intel64/libippcore.a /opt/intel/compilers_and_libraries_2018.1.163/linux/ipp/lib/intel64/libipps.a -march=core2 -mavx2 -mrdrnd -lippcore -lipps */
+/* icpc -O3 -static -o fff ./sortTesting.cpp ./qsort_avx2_int32.o /opt/intel/compilers_and_libraries_2018.1.163/linux/ipp/lib/intel64/libippcore.a /opt/intel/compilers_and_libraries_2018.1.163/linux/ipp/lib/intel64/libipps.a -mtune=broadwell -xcore-avx2 -lippcore -lipps */
 
 #include <cstdio>
 #include <cstdlib>
