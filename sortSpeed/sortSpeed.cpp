@@ -392,7 +392,7 @@ int main(int argc, char* argv[]) {
 
         ippInit();
         int ippSizeVal = 0;
-        ippsSortRadixGetBufferSize(N, ipp32u, &ippSizeVal);
+        ippsSortRadixGetBufferSize(nElems, ipp32u, &ippSizeVal);
         start_ns = time_ns(&ts);
         /* https://software.intel.com/en-us/node/722934 */
         ret = ippsSortRadixAscend_32u_I((Ipp32u*)ptr, nElems, (Ipp8u*)ptrd);
