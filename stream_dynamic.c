@@ -1,4 +1,8 @@
+// -march=skylake-avx512 -qopt-streaming-stores=always -qopt-prefetch -fopenmp -Ofast
 // -march=core-avx2 -qopt-streaming-stores=always -qopt-prefetch -fopenmp -Ofast
+// -march=core-avx -qopt-streaming-stores=always -qopt-prefetch -fopenmp -Ofast
+// -mssse3 -qopt-streaming-stores=always -qopt-prefetch -fopenmp -Ofast
+// gcc  -fprefetch-loop-arrays -march=armv8-a -fopenmp -Ofast -o stream_armv8a_gcc8 ./stream_dynamic.c
 /*-----------------------------------------------------------------------*/
 /* Program: STREAM                                                       */
 /* Revision: $Id: stream.c,v 5.10 2013/01/17 16:01:06 mccalpin Exp mccalpin $ */
@@ -43,15 +47,19 @@
 /*-----------------------------------------------------------------------*/
 # include <stdio.h>
 # include <stdlib.h>
+# include <stdint.h>
 # include <time.h>
 # include <omp.h>
 # include <math.h>
 # include <float.h>
+# include <string.h>
+
+# include <unistd.h>
 # include <limits.h>
 # include <sys/time.h>
-#include <unistd.h>
-#include <sys/mman.h>
-#include <stdint.h>
+# include <sys/resource.h>
+# include <sys/mman.h>
+
 
 /*-----------------------------------------------------------------------
  * INSTRUCTIONS:
@@ -222,7 +230,7 @@ void * alloc_memory(size_t n_bytes) {
 			printf("HugePage allocated at pointer %p\n", ptr);
 			return ptr;
 		} else {
-                        printf("HugePage allocated Failed: %d\n", ptr);
+                        printf("HugePage allocated Failed: %p\n", ptr);
 		}
 	}
 	// fall back to normal page allocation
@@ -238,12 +246,19 @@ void * alloc_memory(size_t n_bytes) {
 }
 
 
+static inline unsigned long long time_us_timeval(struct timeval* const tv) {
+	return ((unsigned long long) tv->tv_sec) * 1000000LLU
+			+ (unsigned long long) tv->tv_usec;
+}
+
+
 int
 main(int argc, char* argv[])
     {
     int			quantum, checktick();
     int			BytesPerWord;
     int			k;
+    int         nrThreads;
     ssize_t		j;
     STREAM_TYPE		scalar;
     //double		t, times[4][NTIMES];
@@ -292,8 +307,8 @@ main(int argc, char* argv[])
     printf("Total memory required = %.1f MiB (= %.1f GiB).\n",
 	(3.0 * BytesPerWord) * ( (double) STREAM_ARRAY_SIZE / 1024.0/1024.),
 	(3.0 * BytesPerWord) * ( (double) STREAM_ARRAY_SIZE / 1024.0/1024./1024.));
-    printf("Each kernel will be executed %d times.\n", NTIMES);
-    printf(" The *Average* time for each kernel (excluding the first iteration)\n");
+    printf("Each kernel will be executed %lld times.\n", NTIMES);
+    printf(" The *Best* time for each kernel\n");
     printf(" will be used to compute the reported bandwidth.\n");
 
 #ifdef _OPENMP
@@ -309,11 +324,11 @@ main(int argc, char* argv[])
 #endif
 
 #ifdef _OPENMP
-	k = 0;
+	nrThreads = 0;
 #pragma omp parallel
 #pragma omp atomic
-		k++;
-    printf ("Number of Threads counted = %i\n",k);
+		nrThreads++;
+    printf ("Number of Threads counted = %i\n",nrThreads);
 #endif
 
     printf("Try to Allocate Memory ...\n");
@@ -343,6 +358,13 @@ main(int argc, char* argv[])
 	quantum = 1;
     }
 
+
+	struct rusage r1, r2;
+	unsigned long long rdelta = 0ULL;
+	memset(&r1, 0, sizeof(r1));
+	memset(&r1, 0, sizeof(r2));
+	getrusage(RUSAGE_SELF, &r1);
+
     t = mysecond();
 #pragma omp parallel for
     for (j = 0; j < STREAM_ARRAY_SIZE; j++)
@@ -352,9 +374,10 @@ main(int argc, char* argv[])
     printf("Each test below will take on the order"
 	" of %d microseconds.\n", (int) t  );
 
-    printf(HLINE);
 
     /*	--- MAIN LOOP --- repeat test cases NTIMES times --- */
+    
+    t = mysecond();
 
     scalar = 3.0;
     for (k=0; k<NTIMES; k++)
@@ -399,10 +422,18 @@ main(int argc, char* argv[])
 #endif
 	times[3][k] = mysecond() - times[3][k];
 	}
+	
+    t = 1.0E6 * (mysecond() - t);
+	getrusage(RUSAGE_SELF, &r2);
+	rdelta = time_us_timeval(&(r2.ru_utime)) - time_us_timeval(&(r1.ru_utime));
+
+    printf("Test Done: Wall %.0f  User %.0f Threads %d Ratio %.03f\n", t, (double)rdelta, 
+        nrThreads, t * (double)nrThreads / (double)rdelta);
+	printf(HLINE);
 
     /*	--- SUMMARY --- */
 
-    for (k=1; k<NTIMES; k++) /* note -- skip first iteration */
+    for (k=0; k<NTIMES; k++) /* use all the iteration */
 	{
 	for (j=0; j<4; j++)
 	    {
@@ -414,7 +445,7 @@ main(int argc, char* argv[])
 
     printf("Function    Best Rate MB/s  Avg time     Min time     Max time\n");
     for (j=0; j<4; j++) {
-		avgtime[j] = avgtime[j]/(double)(NTIMES-1);
+		avgtime[j] = avgtime[j]/(double)(NTIMES);
 
 		printf("%s%12.1f  %11.6f  %11.6f  %11.6f\n", label[j],
 	       1.0E-06 * bytes[j]/mintime[j],
@@ -423,6 +454,7 @@ main(int argc, char* argv[])
 	       maxtime[j]);
     }
     printf(HLINE);
+    printf("\n\n");
 
     /* --- Check Results --- */
     //checkSTREAMresults();
